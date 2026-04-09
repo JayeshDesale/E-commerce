@@ -1,0 +1,8 @@
+{
+  "name": "e-commerce-website",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix desale-backend start",
+    "backend:start": "npm --prefix desale-backend start"
+  }
+}
