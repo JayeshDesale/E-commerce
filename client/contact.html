@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart | DE-SALE</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart 🛒</a>
+    <a href="checkout.html">Checkout</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
+
+<section class="page-center">
+  <div class="form-card">
+    <h2>Contact Us</h2>
+
+    <form id="feedbackForm">
+      <input type="text" name="name" placeholder="Your Name" required>
+      <input type="email" name="email" placeholder="Your Email" required>
+      <textarea name="message" placeholder="Your Message" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
+</section>
+
+
+<footer>
+  <p>&copy; 2025 DE-SALE</p>
+</footer>
+
+<!-- ================= FEEDBACK SCRIPT ================= -->
+<script src="js/config.js"></script>
+<script>
+document.getElementById("feedbackForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  fetch(`${window.APP_CONFIG.apiBaseUrl}/api/feedback/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: this.name.value,
+      email: this.email.value,
+      message: this.message.value
+    })
+  })
+  .then(res => res.text())
+  .then(msg => {
+    alert(msg);
+    this.reset();
+
+    // 🔁 Redirect to home
+    window.location.href = "login.html";
+  })
+  .catch(() => alert("Feedback failed"));
+});
+</script>
+
+<!-- ================= THEME SCRIPT ================= -->
+<script>
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+});
+</script>
+
+</body>
+</html>

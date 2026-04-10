@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart | DE-SALE</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<!-- 🔐 AUTH GUARD -->
+<script>
+if (!localStorage.getItem("loggedInUser")) {
+  window.location.href = "login.html";
+}
+</script>
+
+<!-- ================= HEADER ================= -->
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart 🛒</a>
+    <a href="checkout.html">Checkout</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
+
+<!-- ================= CHECKOUT ================= -->
+<section class="page-center">
+  <div class="form-card">
+    <h2>Checkout</h2>
+
+    <form id="checkout-form">
+
+      <input type="text" placeholder="Full Name" required>
+      <input type="text" placeholder="Phone Number" required>
+      <textarea placeholder="Shipping Address" required></textarea>
+
+      <!-- PAYMENT SECTION -->
+     <div class="payment-box">
+  <h3>Select Payment Method</h3>
+
+  <div class="payment-option">
+    <input type="radio" name="payment" value="COD" checked>
+    <label>Cash on Delivery</label>
+  </div>
+
+  <div class="payment-option">
+    <input type="radio" name="payment" value="UPI">
+    <label>UPI</label>
+  </div>
+
+  <div class="payment-option">
+    <input type="radio" name="payment" value="CARD">
+    <label>Credit / Debit Card</label>
+  </div>
+</div>
+
+      <button type="submit">Place Order</button>
+    </form>
+  </div>
+</section>
+
+<!-- ================= CHECKOUT SCRIPT ================= -->
+<script src="js/config.js"></script>
+<script>
+document.getElementById("checkout-form").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const userEmail = localStorage.getItem("loggedInUser");
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if (cart.length === 0) {
+    alert("Cart is empty");
+    return;
+  }
+
+  let total = 0;
+  cart.forEach(item => total += item.price * (item.qty || 1));
+
+  const paymentMethod =
+    document.querySelector("input[name='payment']:checked").value;
+
+  fetch(`${window.APP_CONFIG.apiBaseUrl}/api/order/place-order`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userEmail,
+      paymentMethod,
+      totalAmount: total,
+      cartItems: cart
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    localStorage.removeItem("cart");
+    window.location.href = "success.html";
+  })
+  .catch(() => alert("Order failed"));
+});
+</script>
+
+<!-- ================= COMMON SCRIPTS ================= -->
+<script>
+function logout() {
+  localStorage.removeItem("loggedInUser");
+  window.location.href = "login.html";
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+});
+</script>
+
+</body>
+</html>

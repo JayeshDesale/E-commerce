@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart | DE-SALE</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart 🛒</a>
+    <a href="checkout.html">Checkout</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <div>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
+<section class="page-center">
+  <div class="form-card">
+    <h2>About DE-SALE</h2>
+
+    <p>
+      DE-SALE is a full-stack e-commerce platform built to demonstrate
+      real-world shopping, authentication, checkout, and email workflows.
+    </p>
+
+    <p>
+      This project uses HTML, CSS, JavaScript, Node.js, Express, and MySQL
+      with a focus on clean UI, security, and scalability.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2025 DE-SALE</p>
+</footer>
+<script>
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+
+  if (document.body.classList.contains("dark")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
+}
+
+// Apply saved theme on load
+document.addEventListener("DOMContentLoaded", function () {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+});
+</script>
+
+
+</body>
+</html>

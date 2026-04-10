@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products | DE-SALE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+
+<body>
+<script>
+if (!localStorage.getItem("loggedInUser")) {
+  window.location.href = "login.html";
+}
+</script>
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart 🛒</a>
+    <a href="checkout.html">Checkout</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  
+
+</header>
+
+<section class="section">
+  <h2>Explore Our Products</h2>
+
+  <div class="products">
+
+    <div class="product-card">
+      <img src="images/laptops.jpeg">
+      <h3>Performance Laptop</h3>
+      <p>₹49,999</p>
+      <div class="rating" data-product="Gaming Laptop">
+  <span onclick="rate(this,1)">★</span>
+  <span onclick="rate(this,2)">★</span>
+  <span onclick="rate(this,3)">★</span>
+  <span onclick="rate(this,4)">★</span>
+  <span onclick="rate(this,5)">★</span>
+</div>
+
+      <button onclick="addToCart('Performance Laptop',49999,'images/laptops.jpeg')">Add to Cart</button>
+    </div>
+
+    <div class="product-card">
+      <img src="images/earbuds.jpeg">
+      <h3>Wireless Earbuds</h3>
+      <p>₹1,299</p>
+      <div class="rating" data-product="Earbuds">
+  <span onclick="rate(this,1)">★</span>
+  <span onclick="rate(this,2)">★</span>
+  <span onclick="rate(this,3)">★</span>
+  <span onclick="rate(this,4)">★</span>
+  <span onclick="rate(this,5)">★</span>
+</div>
+
+      <button onclick="addToCart('Wireless Earbuds',1299,'images/earbuds.jpeg')">Add to Cart</button>
+    </div>
+
+    <div class="product-card">
+      <img src="images/mouse.jpeg">
+      <h3>Gaming Mouse</h3>
+      <p>₹799</p>
+      <div class="rating" data-product="Mouse">
+  <span onclick="rate(this,1)">★</span>
+  <span onclick="rate(this,2)">★</span>
+  <span onclick="rate(this,3)">★</span>
+  <span onclick="rate(this,4)">★</span>
+  <span onclick="rate(this,5)">★</span>
+</div>
+
+      <button onclick="addToCart('Gaming Mouse',799,'images/mouse.jpeg')">Add to Cart</button>
+    </div>
+
+    <div class="product-card">
+      <img src="images/keyboards.jpeg">
+      <h3>Mechanical Keyboard</h3>
+      <p>₹1,999</p>
+      <div class="rating" data-product="Keyboard">
+  <span onclick="rate(this,1)">★</span>
+  <span onclick="rate(this,2)">★</span>
+  <span onclick="rate(this,3)">★</span>
+  <span onclick="rate(this,4)">★</span>
+  <span onclick="rate(this,5)">★</span>
+</div>
+
+      <button onclick="addToCart('Mechanical Keyboard',1999,'images/keyboards.jpeg')">Add to Cart</button>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2025 DE-SALE</p>
+</footer>
+
+<script>
+function logout() {
+  localStorage.removeItem("loggedInUser");
+  window.location.href = "login.html";
+}
+</script>
+
+<script>
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+
+  if (document.body.classList.contains("dark")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
+}
+
+// Apply saved theme on load
+document.addEventListener("DOMContentLoaded", function () {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+});
+</script>
+<script>
+function rate(el, value) {
+  const stars = el.parentElement.querySelectorAll("span");
+  const product = el.parentElement.dataset.product;
+
+  stars.forEach((star, index) => {
+    star.classList.toggle("active", index < value);
+  });
+
+  localStorage.setItem("rating_" + product, value);
+}
+
+// Load saved ratings
+document.querySelectorAll(".rating").forEach(r => {
+  const product = r.dataset.product;
+  const saved = localStorage.getItem("rating_" + product);
+  if (saved) {
+    r.querySelectorAll("span").forEach((s,i)=>{
+      s.classList.toggle("active", i < saved);
+    });
+  }
+});
+</script>
+
+<script>
+function addToCart(name, price, image) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  // Check if product already exists
+  let existingProduct = cart.find(item => item.name === name);
+
+  if (existingProduct) {
+    existingProduct.qty += 1;
+  } else {
+    cart.push({
+      name: name,
+      price: price,
+      image: image,
+      qty: 1
+    });
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  alert(name + " added to cart");
+}
+</script>
+
+</body>
+</html>

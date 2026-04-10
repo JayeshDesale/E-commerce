@@ -1,3 +1,5 @@
 .idea/
-Frontend/
+*/.idea/
+*.iml
 desale-backend/node_modules/
+*.log

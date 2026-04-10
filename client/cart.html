@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart | DE-SALE</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<script>
+if (!localStorage.getItem("loggedInUser")) {
+  window.location.href = "login.html";
+}
+</script>
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart 🛒</a>
+    <a href="checkout.html">Checkout</a>
+     <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+</header>
+
+<section class="cart-container">
+  <!-- LEFT: CART ITEMS -->
+  <div id="cart-items"></div>
+
+  <!-- RIGHT: SUMMARY -->
+  <div id="cart-summary"></div>
+</section>
+
+<footer>
+  <p>&copy; 2025 DE-SALE</p>
+</footer>
+
+<script>
+function displayCart() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const items = document.getElementById("cart-items");
+  const summary = document.getElementById("cart-summary");
+
+  items.innerHTML = "<h2>Your Cart</h2>";
+  let subtotal = 0;
+
+  if (cart.length === 0) {
+    items.innerHTML += "<p>Your cart is empty.</p>";
+    summary.innerHTML = "";
+    return;
+  }
+
+  cart.forEach((item, index) => {
+    subtotal += item.price * (item.qty || 1);
+
+    items.innerHTML += `
+      <div class="cart-item">
+        <img src="${item.image}" alt="${item.name}">
+
+        <div class="cart-info">
+          <h4>${item.name}</h4>
+          <p>₹${item.price}</p>
+          <p>Qty: ${item.qty || 1}</p>
+        </div>
+
+        <div class="cart-actions">
+          <button onclick="updateQty(${index}, -1)">➖</button>
+          <button onclick="updateQty(${index}, 1)">➕</button>
+          <button onclick="removeItem(${index})">❌</button>
+        </div>
+      </div>
+    `;
+  });
+
+  const tax = Math.round(subtotal * 0.18);
+  const total = subtotal + tax;
+
+  summary.innerHTML = `
+    <h3>Order Summary</h3>
+    <p>Subtotal: ₹${subtotal}</p>
+    <p>GST (18%): ₹${tax}</p>
+    <hr>
+    <h3>Total: ₹${total}</h3>
+    <a href="checkout.html">
+      <button style="margin-top:15px;width:100%;">Proceed to Checkout</button>
+    </a>
+  `;
+}
+
+function updateQty(index, change) {
+  let cart = JSON.parse(localStorage.getItem("cart"));
+  cart[index].qty = (cart[index].qty || 1) + change;
+
+  if (cart[index].qty <= 0) {
+    cart.splice(index, 1);
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  displayCart();
+}
+
+function removeItem(index) {
+  let cart = JSON.parse(localStorage.getItem("cart"));
+  cart.splice(index, 1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  displayCart();
+}
+
+/* Dark mode */
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "theme",
+    document.body.classList.contains("dark") ? "dark" : "light"
+  );
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+  displayCart();
+});
+</script>
+
+</body>
+</html>

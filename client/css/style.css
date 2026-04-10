@@ -1,0 +1,467 @@
+/* ================= GLOBAL ================= */
+:root {
+  --primary: #1a7e9c;
+  --secondary: #28a745;
+  --light: #f9f9f9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--light);
+  color: #222;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ================= HEADER ================= */
+header {
+  background: linear-gradient(135deg, #1a7e9c, #57c2e3);
+  color: white;
+  padding: 15px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+nav a {
+  color: white;
+  margin: 0 15px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.theme-toggle {
+  cursor: pointer;
+  border: none;
+  background: white;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* ================= HERO ================= */
+.hero {
+  height: 420px;
+  background: url("../images/herobanner.jpg") center/cover no-repeat;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+}
+
+.hero-content {
+  position: relative;
+}
+
+.hero h2 {
+  font-size: 3rem;
+}
+
+.hero p {
+  margin-top: 10px;
+  font-size: 1.2rem;
+}
+
+.hero button {
+  margin-top: 20px;
+  padding: 14px 36px;
+  border-radius: 30px;
+  border: none;
+  background: var(--secondary);
+  color: white;
+}
+
+/* ================= SECTIONS ================= */
+.section {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+/* ================= PRODUCT CARD ================= */
+.product-card {
+  width: 250px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.product-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.product-card h3 {
+  margin: 15px 0 5px;
+}
+
+.product-card p {
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.product-card button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--secondary);
+  color: white;
+}
+
+/* ================= CART ================= */
+.cart-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+.cart-item {
+  display: flex;
+  gap: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.cart-item img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.cart-info h4 {
+  margin-bottom: 6px;
+}
+
+.cart-info p {
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.cart-actions button {
+  padding: 6px 10px;
+  margin: 0 4px;
+  border-radius: 6px;
+}
+
+#cart-summary {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+/* ================= FOOTER ================= */
+footer {
+  background: #1e88e5;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .product-card {
+    width: 90%;
+  }
+
+  .cart-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ================= DARK MODE (FINAL & SAFE) ================= */
+body.dark {
+  background: #121212;
+  color: #ffffff;
+}
+
+/* force text visible */
+body.dark * {
+  color: #ffffff;
+}
+
+/* exceptions */
+body.dark a {
+  color: #60a5fa;
+}
+
+body.dark button {
+  background: var(--secondary);
+  color: #ffffff;
+}
+
+/* dark surfaces */
+body.dark header,
+body.dark footer,
+body.dark .product-card,
+body.dark .cart-item,
+body.dark #cart-summary {
+  background: #1f1f1f;
+}
+
+/* keep prices green */
+body.dark .product-card p,
+body.dark .cart-info p {
+  color: #4ade80;
+}
+
+/* ================= RATINGS ================= */
+.rating {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.rating span {
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.rating span.active {
+  color: gold;
+}
+
+
+/* ================= AUTH & FORM PAGES ================= */
+
+.page-center {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.form-card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.form-card input,
+.form-card textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.form-card button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--secondary);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.form-card p {
+  text-align: center;
+  margin-top: 15px;
+}
+
+/* DARK MODE SUPPORT */
+body.dark .form-card {
+  background: #1f1f1f;
+  color: white;
+}
+
+body.dark .form-card input,
+body.dark .form-card textarea {
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #555;
+}
+
+
+/* ================= PAYMENT METHOD FINAL LOCK ================= */
+
+.payment-box {
+  margin: 20px 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f5f5f5;
+}
+
+.payment-box h3 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+/* Force perfect horizontal alignment */
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* Radio button reset */
+.payment-option input[type="radio"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Label text */
+.payment-option label {
+  margin: 0;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Dark mode */
+body.dark .payment-box {
+  background: #2a2a2a;
+}
+
+
+
+/* ================= HEADER ACTIONS ================= */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Logout button style */
+.logout-btn {
+  padding: 6px 14px;
+  border-radius: 18px;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Hover effect */
+.logout-btn:hover {
+  background: white;
+  color: #1a7e9c;
+}
+
+/* Dark mode */
+body.dark .logout-btn {
+  border-color: #fff;
+  color: #fff;
+}
+
+body.dark .logout-btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+
+
+/* ================= DROPDOWN VISIBILITY FIX ================= */
+
+/* Make sure header allows dropdown */
+header {
+  overflow: visible !important;
+}
+
+/* User menu container */
+.user-menu {
+  position: relative;
+}
+
+/* Dropdown itself */
+.user-dropdown {
+  position: absolute;
+  top: 140%;
+  right: 0;
+  min-width: 120px;
+  background: rgb(169, 247, 26);
+  border-radius: 10px;
+  padding: 6px 0;
+  display: none;
+  z-index: 9999; /* 🔥 MOST IMPORTANT */
+  box-shadow: 0 10px 25px rgba(241, 240, 240, 0.25);
+}
+
+/* Dropdown button */
+.user-dropdown button {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+
+
+/* Dark mode */
+body.dark .user-dropdown {
+  background: #1f1f1f;
+}
+
+body.dark .user-dropdown button {
+  color: rgb(30, 30, 31);
+}
+
+body.dark .user-dropdown button:hover {
+  background: #333;
+}
