@@ -8,13 +8,5 @@ services:
     healthCheckPath: /api/health
     plan: free
     envVars:
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_NAME
+      - key: MONGODB_URI
         sync: false

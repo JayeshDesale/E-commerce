@@ -1,62 +1,53 @@
 const express = require("express");
-const db = require("../db");
-
-const router = express.Router();
+const Order = require("../models/Order");
 const sendOrderEmail = require("../utils/email");
 
-router.post("/place-order", (req, res) => {
-    const { userEmail, cartItems, totalAmount, paymentMethod } = req.body;
+const router = express.Router();
 
-    if (!userEmail || !Array.isArray(cartItems) || cartItems.length === 0 || !totalAmount || !paymentMethod) {
-        return res.status(400).send("Missing order details");
-    }
+router.post("/place-order", async (req, res) => {
+    try {
+        const { userEmail, cartItems, totalAmount, paymentMethod } = req.body;
 
-    const orderSql =
-        "INSERT INTO orders (user_email, total_amount, payment_method) VALUES (?, ?, ?)";
-
-    db.query(orderSql, [userEmail, totalAmount, paymentMethod], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send("Order failed");
+        if (!userEmail || !Array.isArray(cartItems) || cartItems.length === 0 || !totalAmount || !paymentMethod) {
+            return res.status(400).send("Missing order details");
         }
 
-        const orderId = result.insertId;
-        const itemSql =
-            "INSERT INTO order_items (order_id, product_name, price, quantity) VALUES ?";
-        const values = cartItems.map(item => [
-            orderId,
-            item.name,
-            item.price,
-            item.qty || 1
-        ]);
+        const items = cartItems.map(item => ({
+            name: item.name,
+            price: Number(item.price),
+            qty: Number(item.qty || 1)
+        }));
 
-        db.query(itemSql, [values], itemErr => {
-            if (itemErr) {
-                console.error(itemErr);
-                return res.status(500).send("Order items failed");
-            }
+        const order = await Order.create({
+            userEmail,
+            totalAmount: Number(totalAmount),
+            paymentMethod,
+            items
+        });
 
-            sendOrderEmail(userEmail, {
-                orderId,
+        try {
+            await sendOrderEmail(userEmail, {
+                orderId: order._id.toString(),
                 paymentMethod,
                 totalAmount,
-                items: cartItems
-            })
-                .then(() => {
-                    res.send({
-                        message: "Order placed and email sent successfully",
-                        orderId
-                    });
-                })
-                .catch(emailErr => {
-                    console.error(emailErr);
-                    res.send({
-                        message: "Order placed but email failed",
-                        orderId
-                    });
-                });
-        });
-    });
+                items
+            });
+
+            return res.send({
+                message: "Order placed and email sent successfully",
+                orderId: order._id
+            });
+        } catch (emailErr) {
+            console.error(emailErr);
+            return res.send({
+                message: "Order placed but email failed",
+                orderId: order._id
+            });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Order failed");
+    }
 });
 
 module.exports = router;
