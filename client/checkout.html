@@ -161,7 +161,7 @@ document.getElementById("checkout-form").addEventListener("submit", function(e) 
       items: cart,
       placedAt: new Date().toISOString()
     }));
-    alert(data.message);
+    alert(data.message || "Order placed successfully.");
     localStorage.removeItem("cart");
     window.location.href = "success.html";
   })

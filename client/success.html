@@ -47,6 +47,12 @@ function formatPrice(value) {
   return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
 }
 
+function formatEmailStatus(status) {
+  if (status === true) return "Sent";
+  if (status === false) return "Not sent";
+  return "Sending";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("theme") === "dark") {
     document.body.classList.add("dark");
@@ -87,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div>
         <span>Email Status</span>
-        <strong>${order.emailSent ? "Sent" : "Not sent"}</strong>
+        <strong>${formatEmailStatus(order.emailSent)}</strong>
       </div>
     </div>
 

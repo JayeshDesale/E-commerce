@@ -13,13 +13,19 @@ function createTransporter() {
             host: process.env.EMAIL_HOST,
             port: Number(process.env.EMAIL_PORT || 587),
             secure: process.env.EMAIL_SECURE === "true",
-            auth: { user, pass }
+            auth: { user, pass },
+            connectionTimeout: Number(process.env.EMAIL_TIMEOUT_MS || 5000),
+            greetingTimeout: Number(process.env.EMAIL_TIMEOUT_MS || 5000),
+            socketTimeout: Number(process.env.EMAIL_TIMEOUT_MS || 5000)
         });
     }
 
     return nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE || "gmail",
-        auth: { user, pass }
+        auth: { user, pass },
+        connectionTimeout: Number(process.env.EMAIL_TIMEOUT_MS || 5000),
+        greetingTimeout: Number(process.env.EMAIL_TIMEOUT_MS || 5000),
+        socketTimeout: Number(process.env.EMAIL_TIMEOUT_MS || 5000)
     });
 }
 

@@ -5,6 +5,7 @@ const sendOrderEmail = require("../utils/email");
 const router = express.Router();
 const trackingSteps = ["Placed", "Confirmed", "Packed", "Shipped", "Out for Delivery", "Delivered"];
 const orderStatuses = [...trackingSteps, "Cancelled"];
+const orderEmailTimeoutMs = Number(process.env.ORDER_EMAIL_TIMEOUT_MS || 5000);
 
 function requireAdmin(req, res, next) {
     const configuredKey = process.env.ADMIN_KEY;
@@ -42,6 +43,25 @@ function buildTracking(order) {
     };
 }
 
+function sendOrderEmailInBackground(to, orderDetails) {
+    try {
+        const emailPromise = sendOrderEmail(to, orderDetails);
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Order email timed out")), orderEmailTimeoutMs);
+        });
+
+        Promise.race([emailPromise, timeoutPromise])
+            .then(() => {
+                console.log(`Order email sent for ${orderDetails.orderId}`);
+            })
+            .catch(emailErr => {
+                console.error("Order email failed:", emailErr.message);
+            });
+    } catch (emailErr) {
+        console.error("Order email failed:", emailErr.message);
+    }
+}
+
 router.post("/place-order", async (req, res) => {
     try {
         const {
@@ -77,30 +97,25 @@ router.post("/place-order", async (req, res) => {
             items
         });
 
-        try {
-            await sendOrderEmail(userEmail, {
-                orderId: order._id.toString(),
-                paymentMethod,
-                customerName,
-                phone,
-                shippingAddress,
-                totalAmount: normalizedTotal,
-                items
-            });
+        const emailDetails = {
+            orderId: order._id.toString(),
+            paymentMethod,
+            customerName,
+            phone,
+            shippingAddress,
+            totalAmount: normalizedTotal,
+            items
+        };
 
-            return res.json({
-                message: "Order placed and email sent successfully",
-                orderId: order._id,
-                emailSent: true
-            });
-        } catch (emailErr) {
-            console.error("Order email failed:", emailErr.message);
-            return res.json({
-                message: "Order placed but email failed",
-                orderId: order._id,
-                emailSent: false
-            });
-        }
+        res.json({
+            message: "Order placed successfully. Confirmation email is being sent.",
+            orderId: order._id,
+            emailSent: "pending"
+        });
+
+        setImmediate(() => {
+            sendOrderEmailInBackground(userEmail, emailDetails);
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Order failed" });
