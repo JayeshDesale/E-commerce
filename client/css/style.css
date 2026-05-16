@@ -31,6 +31,12 @@ header {
 .logo {
   font-size: 32px;
   font-weight: 800;
+  letter-spacing: 0;
+  color: white;
+}
+
+.logo span::before {
+  content: "-";
 }
 
 nav a {
@@ -43,10 +49,11 @@ nav a {
 .theme-toggle {
   cursor: pointer;
   border: none;
-  background: white;
-  color: #333;
-  padding: 6px 12px;
-  border-radius: 20px;
+  background: #22c55e;
+  color: white;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-weight: 700;
 }
 
 /* ================= HERO ================= */
@@ -1253,4 +1260,105 @@ body.dark .user-dropdown button {
 
 body.dark .user-dropdown button:hover {
   background: #333;
+}
+
+/* ================= POLISHED ACCOUNT HEADER OVERRIDES ================= */
+
+header {
+  background: #1f1f1f;
+  overflow: visible !important;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  min-height: 38px;
+  max-width: 220px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border-radius: 999px;
+  padding: 5px 12px 5px 5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-name #userDisplay {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  min-width: 260px;
+  background: white;
+  color: #0f172a;
+  border-radius: 8px;
+  padding: 14px;
+  display: none;
+  z-index: 9999;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  border: 1px solid #e2e8f0;
+}
+
+.user-dropdown-label {
+  display: block;
+  color: #64748b;
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+}
+
+.user-dropdown strong {
+  display: block;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+  margin-bottom: 12px;
+}
+
+.logout-btn,
+.user-dropdown button.logout-btn {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: #0f172a;
+  color: white;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.logout-btn:hover,
+.user-dropdown button.logout-btn:hover {
+  background: #334155;
+  color: white;
+}
+
+body.dark .user-dropdown {
+  background: #1f1f1f;
+  border-color: #333;
+  color: white;
 }

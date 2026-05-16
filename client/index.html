@@ -30,10 +30,13 @@ if (!localStorage.getItem("loggedInUser")) {
   <div class="header-actions">
     <button class="theme-toggle" onclick="toggleTheme()">Theme</button>
     <div class="user-menu">
-      <span class="user-name" onclick="toggleUserMenu()">
+      <button class="user-name" onclick="toggleUserMenu()" type="button">
+        <span class="user-avatar" id="userInitial">U</span>
         <span id="userDisplay">User</span>
-      </span>
+      </button>
       <div class="user-dropdown" id="userDropdown">
+        <span class="user-dropdown-label">Signed in as</span>
+        <strong id="userEmailDisplay">user@email.com</strong>
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
@@ -112,7 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.add("dark");
   }
   if (user) {
-    document.getElementById("userDisplay").innerText = user.split("@")[0];
+    const username = user.split("@")[0];
+    document.getElementById("userDisplay").innerText = username;
+    document.getElementById("userEmailDisplay").innerText = user;
+    document.getElementById("userInitial").innerText = username.charAt(0).toUpperCase();
   }
 });
 
