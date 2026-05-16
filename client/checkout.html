@@ -27,6 +27,7 @@ if (!localStorage.getItem("loggedInUser")) {
     <a href="products.html">Products</a>
     <a href="cart.html">Cart 🛒</a>
     <a href="checkout.html">Checkout</a>
+    <a href="track.html">Track Order</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
   </nav>
@@ -43,9 +44,12 @@ if (!localStorage.getItem("loggedInUser")) {
 
     <form id="checkout-form">
 
-      <input type="text" placeholder="Full Name" required>
-      <input type="text" placeholder="Phone Number" required>
-      <textarea placeholder="Shipping Address" required></textarea>
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="tel" id="phone" placeholder="Phone Number" required>
+      <textarea id="address" placeholder="Shipping Address" required></textarea>
+
+      <div id="order-summary" class="checkout-summary"></div>
+      <p id="checkout-status" class="checkout-status" aria-live="polite"></p>
 
       <!-- PAYMENT SECTION -->
      <div class="payment-box">
@@ -65,9 +69,26 @@ if (!localStorage.getItem("loggedInUser")) {
     <input type="radio" name="payment" value="CARD">
     <label>Credit / Debit Card</label>
   </div>
+
+  <div class="payment-option">
+    <input type="radio" name="payment" value="WALLET">
+    <label>Wallet</label>
+  </div>
+
+  <div class="payment-option">
+    <input type="radio" name="payment" value="NET_BANKING">
+    <label>Net Banking</label>
+  </div>
+
+  <div class="payment-option">
+    <input type="radio" name="payment" value="PAY_LATER">
+    <label>Pay Later</label>
+  </div>
+
+  <div id="payment-extra" class="payment-extra"></div>
 </div>
 
-      <button type="submit">Place Order</button>
+      <button type="submit" id="place-order-btn">Place Order</button>
     </form>
   </div>
 </section>
@@ -80,36 +101,170 @@ document.getElementById("checkout-form").addEventListener("submit", function(e) 
 
   const userEmail = localStorage.getItem("loggedInUser");
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const submitButton = document.getElementById("place-order-btn");
+  const status = document.getElementById("checkout-status");
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
 
   if (cart.length === 0) {
     alert("Cart is empty");
     return;
   }
 
-  let total = 0;
-  cart.forEach(item => total += item.price * (item.qty || 1));
+  if (!isDeliverableCustomerEmail(userEmail)) {
+    alert("Please login with a real email address before checkout. Example/test domains cannot receive order emails.");
+    return;
+  }
+
+  const subtotal = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 1), 0);
+  const tax = Math.round(subtotal * 0.18);
+  const total = subtotal + tax;
 
   const paymentMethod =
     document.querySelector("input[name='payment']:checked").value;
+  const paymentDetails = collectPaymentDetails(paymentMethod);
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Placing order...";
+  status.textContent = "Saving your order...";
 
   fetch(`${window.APP_CONFIG.apiBaseUrl}/api/order/place-order`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       userEmail,
+      customerName: name,
+      phone,
+      shippingAddress: address,
       paymentMethod,
+      paymentDetails,
       totalAmount: total,
       cartItems: cart
     })
   })
-  .then(res => res.json())
+  .then(async res => {
+    const data = await res.json().catch(() => ({ message: "Order failed" }));
+    if (!res.ok) {
+      throw new Error(data.message || "Order failed");
+    }
+    return data;
+  })
   .then(data => {
+    localStorage.setItem("lastOrder", JSON.stringify({
+      orderId: data.orderId,
+      emailSent: data.emailSent,
+      userEmail,
+      customerName: name,
+      paymentMethod,
+      totalAmount: total,
+      items: cart,
+      placedAt: new Date().toISOString()
+    }));
     alert(data.message);
     localStorage.removeItem("cart");
     window.location.href = "success.html";
   })
-  .catch(() => alert("Order failed"));
+  .catch(err => {
+    status.textContent = err.message;
+    alert(err.message);
+  })
+  .finally(() => {
+    submitButton.disabled = false;
+    submitButton.textContent = "Place Order";
+  });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const summary = document.getElementById("order-summary");
+  const submitButton = document.getElementById("place-order-btn");
+  const paymentRadios = document.querySelectorAll("input[name='payment']");
+
+  if (cart.length === 0) {
+    summary.innerHTML = "<p>Your cart is empty.</p>";
+    submitButton.disabled = true;
+    return;
+  }
+
+  const subtotal = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 1), 0);
+  const tax = Math.round(subtotal * 0.18);
+  const total = subtotal + tax;
+  const itemsHtml = cart
+    .map(item => `<li>${item.name} x ${item.qty || 1} - INR ${Number(item.price || 0).toLocaleString("en-IN")}</li>`)
+    .join("");
+
+  summary.innerHTML = `
+    <h3>Order Summary</h3>
+    <ul>${itemsHtml}</ul>
+    <p><strong>Subtotal:</strong> INR ${subtotal.toLocaleString("en-IN")}</p>
+    <p><strong>GST (18%):</strong> INR ${tax.toLocaleString("en-IN")}</p>
+    <p><strong>Total:</strong> INR ${total.toLocaleString("en-IN")}</p>
+  `;
+
+  paymentRadios.forEach(radio => radio.addEventListener("change", renderPaymentExtra));
+  renderPaymentExtra();
+});
+
+function renderPaymentExtra() {
+  const method = document.querySelector("input[name='payment']:checked")?.value || "COD";
+  const box = document.getElementById("payment-extra");
+
+  const fields = {
+    COD: `<p>Pay when your order arrives.</p>`,
+    UPI: `<input type="text" id="upi-id" placeholder="UPI ID, e.g. name@upi">`,
+    CARD: `
+      <input type="text" id="card-name" placeholder="Name on card">
+      <input type="text" id="card-last4" placeholder="Last 4 digits">
+    `,
+    WALLET: `
+      <select id="wallet-name">
+        <option value="Paytm">Paytm</option>
+        <option value="PhonePe">PhonePe</option>
+        <option value="Amazon Pay">Amazon Pay</option>
+      </select>
+    `,
+    NET_BANKING: `
+      <select id="bank-name">
+        <option value="SBI">SBI</option>
+        <option value="HDFC">HDFC</option>
+        <option value="ICICI">ICICI</option>
+        <option value="Axis Bank">Axis Bank</option>
+      </select>
+    `,
+    PAY_LATER: `<p>Pay later request will be verified before dispatch.</p>`
+  };
+
+  box.innerHTML = fields[method] || "";
+}
+
+function collectPaymentDetails(method) {
+  if (method === "UPI") {
+    return { upiId: document.getElementById("upi-id")?.value.trim() || "" };
+  }
+  if (method === "CARD") {
+    return {
+      cardName: document.getElementById("card-name")?.value.trim() || "",
+      cardLast4: document.getElementById("card-last4")?.value.trim() || ""
+    };
+  }
+  if (method === "WALLET") {
+    return { wallet: document.getElementById("wallet-name")?.value || "" };
+  }
+  if (method === "NET_BANKING") {
+    return { bank: document.getElementById("bank-name")?.value || "" };
+  }
+  return {};
+}
+
+function isDeliverableCustomerEmail(email) {
+  if (!email || !email.includes("@")) return false;
+
+  const domain = email.split("@").pop().toLowerCase();
+  const blockedDomains = ["test.com", "example.com", "example.org", "example.net", "localhost"];
+
+  return !blockedDomains.includes(domain);
+}
 </script>
 
 <!-- ================= COMMON SCRIPTS ================= -->

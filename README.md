@@ -60,6 +60,10 @@ Deploy the backend:
 Environment variable:
 
 - `MONGODB_URI`
+- `EMAIL_SERVICE=gmail`
+- `EMAIL_USER`
+- `EMAIL_PASS` - use a Gmail app password, not your normal Gmail password
+- `EMAIL_FROM`
 
 ## Railway
 

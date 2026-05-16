@@ -21,6 +21,7 @@ if (!localStorage.getItem("loggedInUser")) {
     <a href="products.html">Products</a>
     <a href="cart.html">Cart 🛒</a>
     <a href="checkout.html">Checkout</a>
+    <a href="track.html">Track Order</a>
      <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
   </nav>
@@ -63,14 +64,15 @@ function displayCart() {
 
         <div class="cart-info">
           <h4>${item.name}</h4>
-          <p>₹${item.price}</p>
+          <p>INR ${Number(item.price || 0).toLocaleString("en-IN")}</p>
+          ${item.category ? `<small>${item.category}</small>` : ""}
           <p>Qty: ${item.qty || 1}</p>
         </div>
 
         <div class="cart-actions">
-          <button onclick="updateQty(${index}, -1)">➖</button>
-          <button onclick="updateQty(${index}, 1)">➕</button>
-          <button onclick="removeItem(${index})">❌</button>
+          <button onclick="updateQty(${index}, -1)">-</button>
+          <button onclick="updateQty(${index}, 1)">+</button>
+          <button onclick="removeItem(${index})">Remove</button>
         </div>
       </div>
     `;
@@ -81,12 +83,12 @@ function displayCart() {
 
   summary.innerHTML = `
     <h3>Order Summary</h3>
-    <p>Subtotal: ₹${subtotal}</p>
-    <p>GST (18%): ₹${tax}</p>
+    <p>Subtotal: INR ${subtotal.toLocaleString("en-IN")}</p>
+    <p>GST (18%): INR ${tax.toLocaleString("en-IN")}</p>
     <hr>
-    <h3>Total: ₹${total}</h3>
-    <a href="checkout.html">
-      <button style="margin-top:15px;width:100%;">Proceed to Checkout</button>
+    <h3>Total: INR ${total.toLocaleString("en-IN")}</h3>
+    <a href="checkout.html" class="checkout-cta">
+      Proceed to Checkout
     </a>
   `;
 }

@@ -3,3 +3,5 @@
 *.iml
 desale-backend/node_modules/
 *.log
+.env
+desale-backend/.env

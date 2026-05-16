@@ -3,13 +3,61 @@ const Order = require("../models/Order");
 const sendOrderEmail = require("../utils/email");
 
 const router = express.Router();
+const trackingSteps = ["Placed", "Confirmed", "Packed", "Shipped", "Out for Delivery", "Delivered"];
+const orderStatuses = [...trackingSteps, "Cancelled"];
+
+function requireAdmin(req, res, next) {
+    const configuredKey = process.env.ADMIN_KEY;
+    const providedKey = req.headers["x-admin-key"];
+
+    if (!configuredKey) {
+        return res.status(500).json({ message: "Admin key is not configured" });
+    }
+
+    if (providedKey !== configuredKey) {
+        return res.status(401).json({ message: "Invalid admin key" });
+    }
+
+    return next();
+}
+
+function buildTracking(order) {
+    const currentIndex = Math.max(0, trackingSteps.indexOf(order.status));
+
+    return {
+        orderId: order._id,
+        status: order.status,
+        estimatedDelivery: order.estimatedDelivery,
+        placedAt: order.createdAt,
+        customerName: order.customerName,
+        userEmail: order.userEmail,
+        totalAmount: order.totalAmount,
+        paymentMethod: order.paymentMethod,
+        items: order.items,
+        steps: trackingSteps.map((step, index) => ({
+            label: step,
+            completed: index <= currentIndex,
+            current: index === currentIndex
+        }))
+    };
+}
 
 router.post("/place-order", async (req, res) => {
     try {
-        const { userEmail, cartItems, totalAmount, paymentMethod } = req.body;
+        const {
+            userEmail,
+            cartItems,
+            totalAmount,
+            paymentMethod,
+            customerName,
+            phone,
+            shippingAddress,
+            paymentDetails
+        } = req.body;
+        const normalizedTotal = Number(totalAmount);
 
-        if (!userEmail || !Array.isArray(cartItems) || cartItems.length === 0 || !totalAmount || !paymentMethod) {
-            return res.status(400).send("Missing order details");
+        if (!userEmail || !Array.isArray(cartItems) || cartItems.length === 0 || !Number.isFinite(normalizedTotal) || normalizedTotal <= 0 || !paymentMethod) {
+            return res.status(400).json({ message: "Missing order details" });
         }
 
         const items = cartItems.map(item => ({
@@ -20,8 +68,12 @@ router.post("/place-order", async (req, res) => {
 
         const order = await Order.create({
             userEmail,
-            totalAmount: Number(totalAmount),
+            totalAmount: normalizedTotal,
             paymentMethod,
+            customerName,
+            phone,
+            shippingAddress,
+            paymentDetails,
             items
         });
 
@@ -29,24 +81,109 @@ router.post("/place-order", async (req, res) => {
             await sendOrderEmail(userEmail, {
                 orderId: order._id.toString(),
                 paymentMethod,
-                totalAmount,
+                customerName,
+                phone,
+                shippingAddress,
+                totalAmount: normalizedTotal,
                 items
             });
 
-            return res.send({
+            return res.json({
                 message: "Order placed and email sent successfully",
-                orderId: order._id
+                orderId: order._id,
+                emailSent: true
             });
         } catch (emailErr) {
-            console.error(emailErr);
-            return res.send({
+            console.error("Order email failed:", emailErr.message);
+            return res.json({
                 message: "Order placed but email failed",
-                orderId: order._id
+                orderId: order._id,
+                emailSent: false
             });
         }
     } catch (err) {
         console.error(err);
-        res.status(500).send("Order failed");
+        res.status(500).json({ message: "Order failed" });
+    }
+});
+
+router.get("/track/:orderId", async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const email = String(req.query.email || "").trim().toLowerCase();
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required to track this order" });
+        }
+
+        const order = await Order.findOne({ _id: orderId, userEmail: email });
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found for this email" });
+        }
+
+        return res.json(buildTracking(order));
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({ message: "Invalid order details" });
+    }
+});
+
+router.get("/admin/orders", requireAdmin, async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .lean();
+
+        return res.json({
+            statuses: orderStatuses,
+            orders: orders.map(order => ({
+                orderId: order._id,
+                status: order.status,
+                customerName: order.customerName,
+                userEmail: order.userEmail,
+                phone: order.phone,
+                shippingAddress: order.shippingAddress,
+                totalAmount: order.totalAmount,
+                paymentMethod: order.paymentMethod,
+                estimatedDelivery: order.estimatedDelivery,
+                placedAt: order.createdAt,
+                items: order.items
+            }))
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Unable to load orders" });
+    }
+});
+
+router.patch("/admin/orders/:orderId/status", requireAdmin, async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        if (!orderStatuses.includes(status)) {
+            return res.status(400).json({ message: "Invalid order status" });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            orderId,
+            { status },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        return res.json({
+            message: "Order status updated",
+            order: buildTracking(order)
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({ message: "Unable to update order status" });
     }
 });
 

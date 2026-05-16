@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DE-SALE | Online Shopping</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 
 <body>
 <script>
@@ -17,196 +14,108 @@ if (!localStorage.getItem("loggedInUser")) {
   window.location.href = "login.html";
 }
 </script>
+
 <header>
   <h1 class="logo">DE<span>SALE</span></h1>
   <nav>
     <a href="index.html">Home</a>
     <a href="products.html">Products</a>
-    <a href="cart.html">Cart 🛒</a>
+    <a href="cart.html">Cart</a>
     <a href="checkout.html">Checkout</a>
+    <a href="track.html">Track Order</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
   </nav>
 
- <div class="header-actions">
-  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-
-  <div class="user-menu">
-    <span class="user-name" onclick="toggleUserMenu()">
-      👤 <span id="userDisplay">User</span> ▼
-    </span>
-
-    <div class="user-dropdown" id="userDropdown">
-      <button class="logout-btn" onclick="logout()">Logout</button>
+  <div class="header-actions">
+    <button class="theme-toggle" onclick="toggleTheme()">Theme</button>
+    <div class="user-menu">
+      <span class="user-name" onclick="toggleUserMenu()">
+        <span id="userDisplay">User</span>
+      </span>
+      <div class="user-dropdown" id="userDropdown">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
     </div>
   </div>
-</div>
-
-
-
-
 </header>
 
 <section class="hero">
+  <div class="hero-bg active" aria-hidden="true"></div>
+  <div class="hero-bg next" aria-hidden="true"></div>
   <div class="hero-content">
-    <h2>Welcome to DE-SALE</h2>
-    <p>Your trusted online shopping platform</p>
-    <button onclick="location.href='products.html'">Shop Now</button>
+    <span class="hero-kicker">Weekend tech refresh</span>
+    <h2>DE-SALE</h2>
+    <p>Curated gadgets, sharp deals, and wishlist-worthy drops for your next setup.</p>
+    <div class="hero-actions">
+      <button onclick="location.href='products.html'">Shop New Drops</button>
+      <a href="products.html#catalog-products">Browse Categories</a>
+    </div>
+    <div class="hero-stats">
+      <span><strong>9+</strong> Tech picks</span>
+      <span><strong>6</strong> Payment options</span>
+      <span><strong>18%</strong> GST ready</span>
+    </div>
+  </div>
+  <div class="hero-offer">
+    <span>Deal radar</span>
+    <strong>Save your wishlist picks before they sell out</strong>
   </div>
 </section>
 
 <section class="section">
-  <h2>Featured Products</h2>
-  <div class="products">
-
-    <div class="product-card">
-      <img src="images/laptops.jpeg">
-      <h3>Gaming Laptop</h3>
-      <p>₹79,999</p>
-      <div class="rating" data-product="Gaming Laptop">
-  <span onclick="rate(this,1)">★</span>
-  <span onclick="rate(this,2)">★</span>
-  <span onclick="rate(this,3)">★</span>
-  <span onclick="rate(this,4)">★</span>
-  <span onclick="rate(this,5)">★</span>
-</div>
-
-      <button onclick="addToCart('Gaming Laptop',79999,'images/laptops.jpeg')">Add to Cart</button>
-    </div>
-
-    <div class="product-card">
-      <img src="images/headphones.jpeg">
-      <h3>Wireless Headphones</h3>
-      <p>₹2,499</p>
-      <div class="rating" data-product="Headphones">
-  <span onclick="rate(this,1)">★</span>
-  <span onclick="rate(this,2)">★</span>
-  <span onclick="rate(this,3)">★</span>
-  <span onclick="rate(this,4)">★</span>
-  <span onclick="rate(this,5)">★</span>
-</div>
-
-      <button onclick="addToCart('Wireless Headphones',2499,'images/headphones.jpeg')">Add to Cart</button>
-    </div>
-
-    <div class="product-card">
-      <img src="images/smartwatches.jpeg">
-      <h3>Smartwatch Pro</h3>
-      <p>₹3,999</p>
-      <div class="rating" data-product="Smartwatches">
-  <span onclick="rate(this,1)">★</span>
-  <span onclick="rate(this,2)">★</span>
-  <span onclick="rate(this,3)">★</span>
-  <span onclick="rate(this,4)">★</span>
-  <span onclick="rate(this,5)">★</span>
-</div>
-
-      <button onclick="addToCart('Smartwatch Pro',3999,'images/smartwatches.jpeg')">Add to Cart</button>
-    </div>
-
+  <div class="section-heading">
+    <span>Trending now</span>
+    <h2>Featured Products</h2>
   </div>
+  <div id="featured-products" class="products"></div>
 </section>
 
-<section class="section">
-  <h2>Why Choose DE-SALE?</h2>
-  <div class="products">
-    <div class="product-card">🚚 Fast Delivery</div>
-    <div class="product-card">🔐 Secure Payment</div>
-    <div class="product-card">⭐ Trusted Quality</div>
+<section class="section feature-band">
+  <div class="feature-tile">
+    <strong>Fast Delivery</strong>
+    <span>Quick dispatch for ready-stock gadgets.</span>
+  </div>
+  <div class="feature-tile">
+    <strong>Secure Checkout</strong>
+    <span>COD, UPI, cards, wallets, net banking, and pay later.</span>
+  </div>
+  <div class="feature-tile">
+    <strong>Wishlist Drops</strong>
+    <span>Save products and build your next tech setup.</span>
   </div>
 </section>
 
 <footer>
-  <p>&copy; 2025 DE-SALE | All rights reserved</p>
+  <p>&copy; 2026 DE-SALE | All rights reserved</p>
 </footer>
+
 <script>
 function logout() {
   localStorage.removeItem("loggedInUser");
   window.location.href = "login.html";
 }
-</script>
 
-<script>
 function toggleTheme() {
   document.body.classList.toggle("dark");
-
-  if (document.body.classList.contains("dark")) {
-    localStorage.setItem("theme", "dark");
-  } else {
-    localStorage.setItem("theme", "light");
-  }
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
 }
 
-// Apply saved theme on load
-document.addEventListener("DOMContentLoaded", function () {
-  if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark");
-  }
-});
-</script>
-<script>
-function rate(el, value) {
-  const stars = el.parentElement.querySelectorAll("span");
-  const product = el.parentElement.dataset.product;
-
-  stars.forEach((star, index) => {
-    star.classList.toggle("active", index < value);
-  });
-
-  localStorage.setItem("rating_" + product, value);
-}
-
-// Load saved ratings
-document.querySelectorAll(".rating").forEach(r => {
-  const product = r.dataset.product;
-  const saved = localStorage.getItem("rating_" + product);
-  if (saved) {
-    r.querySelectorAll("span").forEach((s,i)=>{
-      s.classList.toggle("active", i < saved);
-    });
-  }
-});
-</script>
-<script>
-function addToCart(name, price, image) {
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  // Check if product already exists
-  let existingProduct = cart.find(item => item.name === name);
-
-  if (existingProduct) {
-    existingProduct.qty += 1;
-  } else {
-    cart.push({
-      name: name,
-      price: price,
-      image: image,
-      qty: 1
-    });
-  }
-
-  localStorage.setItem("cart", JSON.stringify(cart));
-  alert(name + " added to cart");
-}
-</script>
-
-
-<script>
 function toggleUserMenu() {
   const menu = document.getElementById("userDropdown");
   menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 
-// Show logged-in user name/email
 document.addEventListener("DOMContentLoaded", () => {
   const user = localStorage.getItem("loggedInUser");
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
   if (user) {
-    // show only name part before @
     document.getElementById("userDisplay").innerText = user.split("@")[0];
   }
 });
 
-// Close dropdown when clicking outside
 document.addEventListener("click", function(e) {
   const menu = document.getElementById("userDropdown");
   const trigger = document.querySelector(".user-name");
@@ -216,6 +125,37 @@ document.addEventListener("click", function(e) {
   }
 });
 </script>
+<script>
+const heroSlides = [
+  "images/herobanner4.jpg",
+  "images/herobanner1.jpg",
+  "images/herobanner.jpg",
+  "images/herobanner3.jpg"
+];
 
+document.addEventListener("DOMContentLoaded", () => {
+  const layers = document.querySelectorAll(".hero-bg");
+  if (layers.length < 2 || heroSlides.length === 0) return;
+
+  let currentIndex = 0;
+  let activeLayer = 0;
+
+  layers[0].style.backgroundImage = `url("${heroSlides[0]}")`;
+  layers[1].style.backgroundImage = `url("${heroSlides[1] || heroSlides[0]}")`;
+
+  window.setInterval(() => {
+    const nextIndex = (currentIndex + 1) % heroSlides.length;
+    const nextLayer = activeLayer === 0 ? 1 : 0;
+
+    layers[nextLayer].style.backgroundImage = `url("${heroSlides[nextIndex]}")`;
+    layers[nextLayer].classList.add("active");
+    layers[activeLayer].classList.remove("active");
+
+    currentIndex = nextIndex;
+    activeLayer = nextLayer;
+  }, 4500);
+});
+</script>
+<script src="js/catalog.js"></script>
 </body>
 </html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Orders | DE-SALE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+  <nav>
+    <a href="index.html">Store</a>
+    <a href="track.html">Track Order</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">Theme</button>
+</header>
+
+<main class="admin-page">
+  <section class="admin-panel">
+    <div class="section-heading">
+      <span>Admin</span>
+      <h2>Manage Orders</h2>
+    </div>
+
+    <form id="admin-login" class="track-form">
+      <input type="password" id="admin-key" placeholder="Admin key" required>
+      <button type="submit">Load Orders</button>
+    </form>
+
+    <p id="admin-message" class="checkout-status" aria-live="polite"></p>
+    <div id="admin-orders" class="admin-orders"></div>
+  </section>
+</main>
+
+<script src="js/config.js"></script>
+<script>
+let adminStatuses = [];
+
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+
+function formatPrice(value) {
+  return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
+}
+
+function formatDate(value) {
+  if (!value) return "Not set";
+  return new Date(value).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getAdminKey() {
+  return document.getElementById("admin-key").value.trim() || localStorage.getItem("adminKey") || "";
+}
+
+function statusOptions(currentStatus) {
+  return adminStatuses.map(status => `
+    <option value="${status}" ${status === currentStatus ? "selected" : ""}>${status}</option>
+  `).join("");
+}
+
+function renderOrders(orders) {
+  const container = document.getElementById("admin-orders");
+
+  if (!orders.length) {
+    container.innerHTML = `<p class="empty-state">No orders found yet.</p>`;
+    return;
+  }
+
+  container.innerHTML = orders.map(order => {
+    const itemList = order.items.map(item => `
+      <li>
+        <span>${item.name} x ${item.qty || 1}</span>
+        <strong>${formatPrice(Number(item.price || 0) * Number(item.qty || 1))}</strong>
+      </li>
+    `).join("");
+
+    return `
+      <article class="admin-order-card">
+        <div class="admin-order-head">
+          <div>
+            <span>Order ID</span>
+            <strong>${order.orderId}</strong>
+          </div>
+          <div class="status-control">
+            <label for="status-${order.orderId}">Status</label>
+            <select id="status-${order.orderId}">
+              ${statusOptions(order.status)}
+            </select>
+            <button onclick="updateOrderStatus('${order.orderId}')">Update</button>
+          </div>
+        </div>
+
+        <div class="admin-order-grid">
+          <div><span>Customer</span><strong>${order.customerName || "Customer"}</strong></div>
+          <div><span>Email</span><strong>${order.userEmail}</strong></div>
+          <div><span>Phone</span><strong>${order.phone || "Not provided"}</strong></div>
+          <div><span>Payment</span><strong>${order.paymentMethod}</strong></div>
+          <div><span>Placed</span><strong>${formatDate(order.placedAt)}</strong></div>
+          <div><span>ETA</span><strong>${formatDate(order.estimatedDelivery)}</strong></div>
+        </div>
+
+        <div class="admin-address">
+          <span>Shipping Address</span>
+          <strong>${order.shippingAddress || "Not provided"}</strong>
+        </div>
+
+        <ul class="success-items">${itemList}</ul>
+
+        <div class="success-total">
+          <span>Total</span>
+          <strong>${formatPrice(order.totalAmount)}</strong>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function loadOrders() {
+  const message = document.getElementById("admin-message");
+  const adminKey = getAdminKey();
+
+  message.textContent = "Loading orders...";
+
+  const response = await fetch(`${window.APP_CONFIG.apiBaseUrl}/api/order/admin/orders`, {
+    headers: { "x-admin-key": adminKey }
+  });
+  const data = await response.json().catch(() => ({ message: "Unable to load orders" }));
+
+  if (!response.ok) {
+    throw new Error(data.message || "Unable to load orders");
+  }
+
+  localStorage.setItem("adminKey", adminKey);
+  adminStatuses = data.statuses;
+  renderOrders(data.orders);
+  message.textContent = "";
+}
+
+async function updateOrderStatus(orderId) {
+  const message = document.getElementById("admin-message");
+  const status = document.getElementById(`status-${orderId}`).value;
+
+  message.textContent = "Updating status...";
+
+  const response = await fetch(`${window.APP_CONFIG.apiBaseUrl}/api/order/admin/orders/${encodeURIComponent(orderId)}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-key": getAdminKey()
+    },
+    body: JSON.stringify({ status })
+  });
+  const data = await response.json().catch(() => ({ message: "Unable to update order" }));
+
+  if (!response.ok) {
+    message.textContent = data.message || "Unable to update order";
+    return;
+  }
+
+  message.textContent = "Order status updated.";
+  window.setTimeout(() => {
+    loadOrders().catch(err => {
+      message.textContent = err.message;
+    });
+  }, 500);
+}
+
+document.getElementById("admin-login").addEventListener("submit", event => {
+  event.preventDefault();
+  loadOrders().catch(err => {
+    document.getElementById("admin-message").textContent = err.message;
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+
+  const savedKey = localStorage.getItem("adminKey");
+  if (savedKey) {
+    document.getElementById("admin-key").value = savedKey;
+  }
+});
+</script>
+</body>
+</html>

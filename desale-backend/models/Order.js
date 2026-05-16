@@ -37,6 +37,35 @@ const orderSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        customerName: {
+            type: String,
+            trim: true
+        },
+        phone: {
+            type: String,
+            trim: true
+        },
+        shippingAddress: {
+            type: String,
+            trim: true
+        },
+        paymentDetails: {
+            type: Object,
+            default: {}
+        },
+        status: {
+            type: String,
+            enum: ["Placed", "Confirmed", "Packed", "Shipped", "Out for Delivery", "Delivered", "Cancelled"],
+            default: "Placed"
+        },
+        estimatedDelivery: {
+            type: Date,
+            default: () => {
+                const date = new Date();
+                date.setDate(date.getDate() + 5);
+                return date;
+            }
+        },
         items: {
             type: [orderItemSchema],
             required: true

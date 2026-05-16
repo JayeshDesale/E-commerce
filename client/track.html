@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Order | DE-SALE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart</a>
+    <a href="track.html">Track Order</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">Theme</button>
+</header>
+
+<main class="track-page">
+  <section class="track-panel">
+    <div class="section-heading">
+      <span>Live order status</span>
+      <h2>Track Your Order</h2>
+    </div>
+
+    <form id="track-form" class="track-form">
+      <input type="text" id="track-order-id" placeholder="Order ID" required>
+      <input type="email" id="track-email" placeholder="Email used for checkout" required>
+      <button type="submit">Track Order</button>
+    </form>
+
+    <p id="track-message" class="checkout-status" aria-live="polite"></p>
+    <div id="track-result"></div>
+  </section>
+</main>
+
+<script src="js/config.js"></script>
+<script>
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+
+function formatPrice(value) {
+  return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
+}
+
+function formatDate(value) {
+  if (!value) return "Updating soon";
+  return new Date(value).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function renderTracking(order) {
+  const result = document.getElementById("track-result");
+  const steps = order.steps.map(step => `
+    <li class="${step.completed ? "done" : ""} ${step.current ? "current" : ""}">
+      <span></span>
+      <strong>${step.label}</strong>
+    </li>
+  `).join("");
+  const items = order.items.map(item => `
+    <li>
+      <span>${item.name} x ${item.qty || 1}</span>
+      <strong>${formatPrice(Number(item.price || 0) * Number(item.qty || 1))}</strong>
+    </li>
+  `).join("");
+
+  result.innerHTML = `
+    <div class="track-card">
+      <div class="track-meta">
+        <div>
+          <span>Current Status</span>
+          <strong>${order.status}</strong>
+        </div>
+        <div>
+          <span>Estimated Delivery</span>
+          <strong>${formatDate(order.estimatedDelivery)}</strong>
+        </div>
+        <div>
+          <span>Order ID</span>
+          <strong>${order.orderId}</strong>
+        </div>
+      </div>
+
+      <ol class="track-steps">${steps}</ol>
+
+      <h3>Order Items</h3>
+      <ul class="success-items">${items}</ul>
+
+      <div class="success-total">
+        <span>Total</span>
+        <strong>${formatPrice(order.totalAmount)}</strong>
+      </div>
+    </div>
+  `;
+}
+
+async function fetchTracking(orderId, email) {
+  const message = document.getElementById("track-message");
+  message.textContent = "Fetching order status...";
+
+  const response = await fetch(`${window.APP_CONFIG.apiBaseUrl}/api/order/track/${encodeURIComponent(orderId)}?email=${encodeURIComponent(email)}`);
+  const data = await response.json().catch(() => ({ message: "Unable to track order" }));
+
+  if (!response.ok) {
+    throw new Error(data.message || "Unable to track order");
+  }
+
+  message.textContent = "";
+  renderTracking(data);
+}
+
+document.getElementById("track-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const orderId = document.getElementById("track-order-id").value.trim();
+  const email = document.getElementById("track-email").value.trim();
+
+  try {
+    await fetchTracking(orderId, email);
+  } catch (err) {
+    document.getElementById("track-message").textContent = err.message;
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const lastOrder = JSON.parse(localStorage.getItem("lastOrder") || "null");
+  const orderId = params.get("orderId") || lastOrder?.orderId || "";
+  const email = params.get("email") || lastOrder?.userEmail || localStorage.getItem("loggedInUser") || "";
+
+  document.getElementById("track-order-id").value = orderId;
+  document.getElementById("track-email").value = email;
+
+  if (orderId && email) {
+    fetchTracking(orderId, email).catch(err => {
+      document.getElementById("track-message").textContent = err.message;
+    });
+  }
+});
+</script>
+</body>
+</html>

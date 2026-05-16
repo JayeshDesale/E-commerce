@@ -1,11 +1,107 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Payment Success</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Successful | DE-SALE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <h1>🎉 Payment Successful!</h1>
-  <p>Your order has been placed. Thank you for shopping with DE-SALE.</p>
-  <a href="index.html">Return to Home</a>
+<header>
+  <h1 class="logo">DE<span>SALE</span></h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart</a>
+  </nav>
+  <button class="theme-toggle" onclick="toggleTheme()">Theme</button>
+</header>
+
+<main class="success-page">
+  <section class="success-panel">
+    <div class="success-mark">OK</div>
+    <div>
+      <span class="hero-kicker">Order confirmed</span>
+      <h1>Payment Successful</h1>
+      <p>Your order has been placed with DE-SALE. A confirmation email is sent when the customer email address can receive mail.</p>
+    </div>
+
+    <div id="success-summary" class="success-summary"></div>
+
+    <div class="success-actions">
+      <a href="track.html" class="primary-link" id="track-order-link">Track Order</a>
+      <a href="products.html" class="primary-link">Continue Shopping</a>
+      <a href="index.html" class="secondary-link">Back to Home</a>
+    </div>
+  </section>
+</main>
+
+<script>
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+
+function formatPrice(value) {
+  return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+
+  const order = JSON.parse(localStorage.getItem("lastOrder") || "null");
+  const summary = document.getElementById("success-summary");
+  const trackLink = document.getElementById("track-order-link");
+
+  if (!order) {
+    summary.innerHTML = `
+      <p>No recent order details found.</p>
+      <p>You can continue shopping or check your email for the latest order confirmation.</p>
+    `;
+    return;
+  }
+
+  const itemHtml = order.items.map(item => `
+    <li>
+      <span>${item.name} x ${item.qty || 1}</span>
+      <strong>${formatPrice(Number(item.price || 0) * Number(item.qty || 1))}</strong>
+    </li>
+  `).join("");
+
+  summary.innerHTML = `
+    <div class="success-grid">
+      <div>
+        <span>Order ID</span>
+        <strong>${order.orderId || "Pending"}</strong>
+      </div>
+      <div>
+        <span>Email</span>
+        <strong>${order.userEmail}</strong>
+      </div>
+      <div>
+        <span>Payment</span>
+        <strong>${order.paymentMethod}</strong>
+      </div>
+      <div>
+        <span>Email Status</span>
+        <strong>${order.emailSent ? "Sent" : "Not sent"}</strong>
+      </div>
+    </div>
+
+    <h3>Order Items</h3>
+    <ul class="success-items">${itemHtml}</ul>
+
+    <div class="success-total">
+      <span>Total Paid</span>
+      <strong>${formatPrice(order.totalAmount)}</strong>
+    </div>
+  `;
+
+  trackLink.href = `track.html?orderId=${encodeURIComponent(order.orderId)}&email=${encodeURIComponent(order.userEmail)}`;
+});
+</script>
 </body>
 </html>
