@@ -46,19 +46,28 @@ function buildTracking(order) {
 function sendOrderEmailInBackground(to, orderDetails) {
     try {
         const emailPromise = sendOrderEmail(to, orderDetails);
+
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("Order email timed out")), orderEmailTimeoutMs);
+            setTimeout(() => {
+                reject(new Error("Order email timed out"));
+            }, orderEmailTimeoutMs);
         });
 
         Promise.race([emailPromise, timeoutPromise])
-            .then(() => {
-                console.log(`Order email sent for ${orderDetails.orderId}`);
+            .then(info => {
+                console.log(
+                    `Order email sent for ${orderDetails.orderId}`
+                );
+                console.log("Email response:", info);
             })
             .catch(emailErr => {
-                console.error("Order email failed:", emailErr.message);
+                console.error("Order email failed:");
+                console.error(emailErr);
             });
+
     } catch (emailErr) {
-        console.error("Order email failed:", emailErr.message);
+        console.error("Order email failed:");
+        console.error(emailErr);
     }
 }
 
