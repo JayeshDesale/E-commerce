@@ -5,7 +5,7 @@ const sendOrderEmail = require("../utils/email");
 const router = express.Router();
 const trackingSteps = ["Placed", "Confirmed", "Packed", "Shipped", "Out for Delivery", "Delivered"];
 const orderStatuses = [...trackingSteps, "Cancelled"];
-const orderEmailTimeoutMs = Number(process.env.ORDER_EMAIL_TIMEOUT_MS || 5000);
+
 
 function requireAdmin(req, res, next) {
     const configuredKey = process.env.ADMIN_KEY;
@@ -43,28 +43,15 @@ function buildTracking(order) {
     };
 }
 
-function sendOrderEmailInBackground(to, orderDetails) {
+async function sendOrderEmailInBackground(to, orderDetails) {
     try {
-        const emailPromise = sendOrderEmail(to, orderDetails);
+        const result = await sendOrderEmail(to, orderDetails);
 
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => {
-                reject(new Error("Order email timed out"));
-            }, orderEmailTimeoutMs);
-        });
+        console.log(
+            `Order email sent successfully for ${orderDetails.orderId}`
+        );
 
-        Promise.race([emailPromise, timeoutPromise])
-            .then(info => {
-                console.log(
-                    `Order email sent for ${orderDetails.orderId}`
-                );
-                console.log("Email response:", info);
-            })
-            .catch(emailErr => {
-                console.error("Order email failed:");
-                console.error(emailErr);
-            });
-
+        console.log("Brevo response:", result);
     } catch (emailErr) {
         console.error("Order email failed:");
         console.error(emailErr);

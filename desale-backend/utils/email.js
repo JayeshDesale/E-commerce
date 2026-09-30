@@ -1,24 +1,3 @@
-const nodemailer = require("nodemailer");
-
-function createTransporter() {
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASS;
-
-    if (!user || !pass) {
-        throw new Error(
-            "Email is not configured. Set EMAIL_USER and EMAIL_PASS."
-        );
-    }
-
-    return nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: user,
-            pass: pass
-        }
-    });
-}
-
 function escapeHtml(value) {
     return String(value)
         .replace(/&/g, "&amp;")
@@ -32,8 +11,22 @@ function formatMoney(value) {
     return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
 }
 
-function sendOrderEmail(to, orderDetails) {
-    const transporter = createTransporter();
+async function sendOrderEmail(to, orderDetails) {
+    const apiKey = process.env.BREVO_API_KEY;
+    const fromEmail = process.env.EMAIL_FROM;
+    const fromName = process.env.EMAIL_FROM_NAME || "DE-SALE";
+
+    if (!apiKey) {
+        throw new Error("BREVO_API_KEY is not configured.");
+    }
+
+    if (!fromEmail) {
+        throw new Error("EMAIL_FROM is not configured.");
+    }
+
+    if (!to) {
+        throw new Error("Customer email address is missing.");
+    }
 
     const itemsHtml = orderDetails.items
         .map(item => `
@@ -44,58 +37,105 @@ function sendOrderEmail(to, orderDetails) {
         `)
         .join("");
 
-    return transporter.sendMail({
-        from: process.env.EMAIL_FROM || `DE-SALE <${process.env.EMAIL_USER}>`,
-        to: to,
-        subject: "Order Confirmation - DE-SALE",
-        html: `
-            <h2>Thank you for your order!</h2>
+    const htmlContent = `
+        <h2>Thank you for your order!</h2>
 
-            <p>
-                <strong>Order ID:</strong>
-                ${escapeHtml(orderDetails.orderId)}
-            </p>
+        <p>
+            <strong>Order ID:</strong>
+            ${escapeHtml(orderDetails.orderId)}
+        </p>
 
-            <p>
-                <strong>Payment Method:</strong>
-                ${escapeHtml(orderDetails.paymentMethod)}
-            </p>
+        <p>
+            <strong>Payment Method:</strong>
+            ${escapeHtml(orderDetails.paymentMethod)}
+        </p>
 
-            ${
-                orderDetails.customerName
-                    ? `<p><strong>Name:</strong> ${escapeHtml(orderDetails.customerName)}</p>`
-                    : ""
-            }
+        ${
+            orderDetails.customerName
+                ? `<p><strong>Name:</strong> ${escapeHtml(orderDetails.customerName)}</p>`
+                : ""
+        }
 
-            ${
-                orderDetails.phone
-                    ? `<p><strong>Phone:</strong> ${escapeHtml(orderDetails.phone)}</p>`
-                    : ""
-            }
+        ${
+            orderDetails.phone
+                ? `<p><strong>Phone:</strong> ${escapeHtml(orderDetails.phone)}</p>`
+                : ""
+        }
 
-            ${
-                orderDetails.shippingAddress
-                    ? `<p><strong>Shipping Address:</strong> ${escapeHtml(orderDetails.shippingAddress)}</p>`
-                    : ""
-            }
+        ${
+            orderDetails.shippingAddress
+                ? `<p><strong>Shipping Address:</strong> ${escapeHtml(orderDetails.shippingAddress)}</p>`
+                : ""
+        }
 
-            <h3>Items:</h3>
-            <ul>
-                ${itemsHtml}
-            </ul>
+        <h3>Items:</h3>
 
-            <h3>
-                Total Amount:
-                ${formatMoney(orderDetails.totalAmount)}
-            </h3>
+        <ul>
+            ${itemsHtml}
+        </ul>
 
-            <p>We will deliver your order soon.</p>
+        <h3>
+            Total Amount:
+            ${formatMoney(orderDetails.totalAmount)}
+        </h3>
 
-            <br>
+        <p>We will deliver your order soon.</p>
 
-            <b>DE-SALE Team</b>
-        `
-    });
+        <br>
+
+        <b>DE-SALE Team</b>
+    `;
+
+    const response = await fetch(
+        "https://api.brevo.com/v3/smtp/email",
+        {
+            method: "POST",
+            headers: {
+                "accept": "application/json",
+                "api-key": apiKey,
+                "content-type": "application/json"
+            },
+            body: JSON.stringify({
+                sender: {
+                    name: fromName,
+                    email: fromEmail
+                },
+                to: [
+                    {
+                        email: to
+                    }
+                ],
+                subject: "Order Confirmation - DE-SALE",
+                htmlContent: htmlContent
+            })
+        }
+    );
+
+    const responseText = await response.text();
+
+    let responseData;
+
+    try {
+        responseData = JSON.parse(responseText);
+    } catch {
+        responseData = {
+            raw: responseText
+        };
+    }
+
+    if (!response.ok) {
+        console.error("Brevo API error:", responseData);
+
+        throw new Error(
+            `Brevo email failed (${response.status}): ${
+                responseData.message || responseText
+            }`
+        );
+    }
+
+    console.log("Brevo email accepted:", responseData);
+
+    return responseData;
 }
 
 module.exports = sendOrderEmail;
